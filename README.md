@@ -42,25 +42,6 @@ From `Cocoa/Readme` instructions:
 >     export AXION_HMCODE_NAME="axionHMcode"
 
 
-> [!TIP]
-> Assuming Cocoa is installed on a local (not remote!) machine, type the command below after step 2️⃣ to run Jupyter Notebooks.
->
->     jupyter notebook --no-browser --port=8888
->
-> The terminal will then show a message similar to the following template:
->
->     (...)
->     [... NotebookApp] Jupyter Notebook 6.1.1 is running at:
->     [... NotebookApp] http://f0a13949f6b5:8888/?token=XXX
->     [... NotebookApp] or http://127.0.0.1:8888/?token=XXX
->     [... NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
->
-> Now go to the local internet browser and type `http://127.0.0.1:8888/?token=XXX`, where XXX is the previously saved token displayed on the line
-> 
->     [... NotebookApp] or http://127.0.0.1:8888/?token=XXX
->
-> The project axicamb_real contains jupyter notebook examples located at `projects/axicamb_real`.
-
 To run the example
 
  **Step :one:**: activate the cocoa Conda environment,  and the private Python environment 
