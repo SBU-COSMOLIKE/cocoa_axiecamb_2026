@@ -3,7 +3,7 @@
 From `Cocoa/Readme` instructions:
 
 > [!Note]
-> We provide several cosmolike projects that can be loaded and compiled using `setup_cocoa.sh` and `compile_cocoa.sh` scripts. To activate them, comment the following lines on `set_installation_options.sh` 
+> To activate AxieCAMB projects, comment the following lines on `set_installation_options.sh` (they are not active by default) before running `setup_cocoa.sh` and `compile_cocoa.sh`
 > 
 >     [Adapted from Cocoa/set_installation_options.sh shell script]
 >     (...)
@@ -11,10 +11,15 @@ From `Cocoa/Readme` instructions:
 >     # ------------------------------------------------------------------------------
 >     # The keys below control which private projects (may not be public repo)
 >     # ------------------------------------------------------------------------------
->     #export INSTALL_AXIONS_2025_PROJECT=1
->     export INSTALL_AXIE_CAMB_V2=1
->     export INSTALL_AXIE_CAMB_2026_PROJECT=1
+>     (...)
+>     #export INSTALL_AXIE_CAMB_V2=1
+>     #export INSTALL_AXIE_CAMB_2026_PROJECT=1
 >
+
+> [!Note]
+>  Adjust the following lines on `set_installation_options.sh` if you are using non-standard repositories
+> 
+>     [Adapted from Cocoa/set_installation_options.sh shell script]
 >     (...)
 >
 >     # ------------------------------------------------------------------------------
@@ -27,8 +32,7 @@ From `Cocoa/Readme` instructions:
 >     export AXIE_CAMB_2026_PROJECT_NAME="axicambv2"
 >
 >     (...)
-
-
+>
 >     # ------------------------------------------------------------------------------
 >     # GENERAL PACKAGE URL AND VERSIONS. CHANGES IN THE COMMIT ID MAY BREAK COCOA ---
 >     # ------------------------------------------------------------------------------
@@ -36,7 +40,7 @@ From `Cocoa/Readme` instructions:
 >     export AXIE_CAMB_URL="https://github.com/SBU-COSMOLIKE/NewTestingAxieCAMB.git"
 >     export AXIE_CAMB_GIT_COMMIT="5007a6d228f36bc68cf488b41798764f169de632"
 >     export AXIE_CAMB_NAME="axiecamb"
-
+>
 >     export AXION_HMCODE_URL="https://github.com/SBU-COSMOLIKE/axionHMcode.git"
 >     export AXION_HMCODE_GIT_COMMIT="a85ba2679cba5abe68b4cfd1e49b7a52bdcda424"
 >     export AXION_HMCODE_NAME="axionHMcode"
