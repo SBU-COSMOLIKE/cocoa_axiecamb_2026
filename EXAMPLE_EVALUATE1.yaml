@@ -169,15 +169,15 @@ theory:
 
 sampler:
   evaluate:
-    N: 2
+    N: 1
     override:
       logA: 3.044
       ns: 0.9655
       thetastar100: 1.0411
       omegabh2: 0.022383
-      #omegach2: 0.12011
+      omegach2: 0.12011
       tau: 0.0543
-      #omegaaxh2: 0.1
+      omegaaxh2: 0.1
       logmx: -33.0
 
-output: ./chains/EXAMPLE_EVALUATE1
+output: ./projects/axicambv2/chains/EXAMPLE_EVALUATE1

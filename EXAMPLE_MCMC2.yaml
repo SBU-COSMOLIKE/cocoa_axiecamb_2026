@@ -19,9 +19,13 @@ debug: false
 timing: true
 
 likelihood:
-  planck_2018_highl_plik.TTTEEE_lite_native:
+  planck_2018_highl_plik.TTTEEE_lite:
+    path: ./external_modules/
+    clik_file: plc_3.0/hi_l/plik_lite/plik_lite_v22_TTTEEE.clik
   planck_2018_lowl.TT:
+    path: ./external_modules
   planck_2018_lowl.EE:
+    path: ./external_modules
   sn.desy5:
   bao.desi_dr2.desi_bao_all:
   act_dr6_lenslike.ACTDR6LensLike:
@@ -151,9 +155,8 @@ params:
 
 theory:
   camb:
-    path: ./                     # on Cocoa: ./external_modules/code/axiecamb
-    # (cobaya >= 3.6 applies Planck-name renames unconditionally; the old
-    #  use_renames flag no longer exists upstream)
+    path: ./external_modules/code/axiecamb
+    use_renames: true
     use_non_linear_ratio: true   # top-level camb option, NOT inside extra_args
     extra_args:
       num_massive_neutrinos: 1
@@ -169,8 +172,8 @@ theory:
       lSampleBoost: 1.0
       lAccuracyBoost: 1.0
   axionhmcode_boost.AxionHMcodeBoost:
-    python_path: ./axionhmcode_boost   # on Cocoa: ./external_modules/code/axiecamb/axionhmcode_boost
-    axionhmcode_path: ../axionHMcode   # on Cocoa: ./external_modules/code/axionHMcode
+    python_path: ./external_modules/code/axiecamb/axionhmcode_boost
+    axionhmcode_path: ./external_modules/code/axionHMcode
     version: dome
     strict: false
     processes: 1
@@ -180,8 +183,6 @@ theory:
 
 sampler:
   mcmc:
-    # Proposal covariance: null -> generated from params info (prior and proposal);
-    # to reuse a matrix, set covmat (file path) and covmat_params
     covmat:
     covmat_params:
     # Proposal covariance learning
@@ -205,4 +206,4 @@ sampler:
     # When no MPI used, number of fractions of the chain to compare
     Rminus1_single_split: 4
 
-output: ./chains/EXAMPLE_AXIONHMCODE_MCMC1
+output: ./projects/axicambv2/chains/EXAMPLE_MCMC2

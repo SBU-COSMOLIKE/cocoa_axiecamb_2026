@@ -165,9 +165,8 @@ params:
 theory:
   camb:
     path: ./external_modules/code/axiecamb
-    # (cobaya >= 3.6 applies Planck-name renames unconditionally; the old
-    #  use_renames flag no longer exists upstream)
-    use_non_linear_ratio: true   # top-level camb option, NOT inside extra_args
+    use_renames: true
+    use_non_linear_ratio: true
     extra_args:
       num_massive_neutrinos: 1
       nnu: 3.046
@@ -176,8 +175,6 @@ theory:
       # (WantTransfer), which the boost theory reads; kmax in 1/Mpc
       nonlinear: NonLinear_both
       kmax: 10
-      # halofit_version is irrelevant here: use_non_linear_ratio forces the
-      # ExternalNonLinearRatio model, fed by the boost theory below
       lens_potential_accuracy: 4
       lens_margin: 1250
       AccuracyBoost: 1.0
@@ -186,12 +183,13 @@ theory:
   axionhmcode_boost.AxionHMcodeBoost:
     python_path: ./external_modules/code/axiecamb/axionhmcode_boost
     axionhmcode_path: ./external_modules/code/axionHMcode
-    version: dome                      # 'dome' (default) | 'basic'
-    strict: false                      # true: hard-error outside calibration
+    version: dome      # 'dome' (default) | 'basic'
+    strict: false      # true: hard-error outside calibration
     processes: 1
 
 sampler:
   evaluate:
+    N: 1
     override:
       logA: 3.044
       ns: 0.9655
@@ -202,4 +200,4 @@ sampler:
       omegaaxh2: 0.012
       logmx: -24.0
 
-output: ./chains/EXAMPLE_EVALUATE2
+output: ./projects/axicambv2/chains/EXAMPLE_EVALUATE2
