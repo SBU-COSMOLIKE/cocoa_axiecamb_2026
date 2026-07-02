@@ -1,0 +1,208 @@
+# AxiECAMB + axionHMcode nonlinear boost + pristine Cobaya: MCMC example.
+#
+# See EXAMPLE_AXIONHMCODE_EVALUATE1.yaml for setup steps and the boost theory
+# documentation (./axionhmcode_boost/README.md).
+#
+# Axion mass, mode B (this file): the mass is FIXED — run one chain per target
+# mass, the practice of arXiv:2301.08361 and arXiv:2605.12054 (the mass
+# posterior is poorly constrained and multimodal-prone). To sample the mass
+# instead (uniform prior in log10 m_ax/eV over the boost target window),
+# replace the fixed m_ax block below with the commented logmx/m_ax pair.
+#
+# Cost warning: every accepted point computes the boost on CAMB's internal
+# ~50-node lensing redshift grid (~1-3.5 min/eval single-threaded; see the
+# boost README). Set processes: N to divide wall time, or train an emulator
+# on this pipeline for production-scale chains.
+
+stop_at_error: false
+debug: false
+timing: true
+
+likelihood:
+  planck_2018_highl_plik.TTTEEE_lite_native:
+  planck_2018_lowl.TT:
+  planck_2018_lowl.EE:
+  sn.desy5:
+  bao.desi_dr2.desi_bao_all:
+  act_dr6_lenslike.ACTDR6LensLike:
+    lens_only: false
+    variant: actplanck_baseline
+
+params:
+  logA:
+    prior:
+      min: 2.8
+      max: 3.2
+    ref:
+      dist: norm
+      loc: 3.04
+      scale: 0.025
+    proposal: 0.025
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  As:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+  ns:
+    prior:
+      min: 0.93
+      max: 1.01
+    ref:
+      dist: norm
+      loc: 0.96
+      scale: 0.0075
+    proposal: 0.0075
+    latex: n_\mathrm{s}
+  thetastar100:
+    prior:
+      min: 1
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 1.041
+      scale: 0.001
+    proposal: 0.001
+    latex: 100\theta_\mathrm{*}
+    renames: theta
+    drop: true
+  thetastar:
+    value: 'lambda thetastar100: 1.e-2*thetastar100'
+    latex: \theta_\mathrm{*}
+  omegabh2:
+    prior:
+      min: 0.01
+      max: 0.03
+    ref:
+      dist: norm
+      loc: 0.022383
+      scale: 0.005
+    proposal: 0.005
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    prior:
+      min: 0.08
+      max: 0.16
+    ref:
+      dist: norm
+      loc: 0.12011
+      scale: 0.01
+    proposal: 0.01
+    latex: \Omega_\mathrm{c} h^2
+  tau:
+    prior:
+      min: 0.04
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.01
+    proposal: 0.01
+    latex: \tau_\mathrm{reio}
+  # DM-like axion density: prior cap keeps fax = omega_ax/omega_m inside the
+  # dome calibration bound (0.3); with strict: False larger values only warn
+  omegaaxh2:
+    prior:
+      min: 0.0001
+      max: 0.04
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.004
+    proposal: 0.004
+    latex: \Omega_\mathrm{ax} h^2
+    drop: true
+  omaxh2:
+    value: 'lambda omegaaxh2: omegaaxh2'
+    latex: \omega_\mathrm{ax}
+  # axion mass, mode B: FIXED — run one chain per target mass
+  m_ax:
+    value: 1.0e-24
+    latex: m_\mathrm{ax}
+  # --- To sample the mass instead (uniform in log10 m_ax/eV over the boost
+  # --- target window), replace the fixed m_ax block above with:
+  # logmx:
+  #   prior:
+  #     min: -25.0
+  #     max: -23.0
+  #   ref:
+  #     dist: norm
+  #     loc: -24.0
+  #     scale: 0.1
+  #   proposal: 0.1
+  #   latex: \log{m_{\rm ax}}
+  #   drop: true
+  # m_ax:
+  #   value: 'lambda logmx: 10**logmx'
+  #   latex: m_\mathrm{ax}
+  mnu:
+    value: 0.06
+  H0:
+    derived: true
+    latex: H_0
+  omegamh2:
+    derived: 'lambda omegach2, omegabh2, mnu: omegach2+omegabh2+(mnu*(3.046/3)**0.75)/94.0708'
+    latex: \Omega_\mathrm{m} h^2  # port convention: excludes the axion
+  omegam:
+    derived: true
+    latex: \Omega_\mathrm{m}
+  rdrag:
+    derived: true
+    latex: r_\mathrm{drag}
+
+theory:
+  camb:
+    path: ./                     # on Cocoa: ./external_modules/code/axiecamb
+    # (cobaya >= 3.6 applies Planck-name renames unconditionally; the old
+    #  use_renames flag no longer exists upstream)
+    use_non_linear_ratio: true   # top-level camb option, NOT inside extra_args
+    extra_args:
+      num_massive_neutrinos: 1
+      nnu: 3.046
+      theta_H0_range: [40, 130]
+      # nonlinear + kmax make CAMB keep matter transfers on the lensing path
+      # (WantTransfer), which the boost theory reads; kmax in 1/Mpc
+      nonlinear: NonLinear_both
+      kmax: 10
+      lens_potential_accuracy: 4
+      lens_margin: 1250
+      AccuracyBoost: 1.0
+      lSampleBoost: 1.0
+      lAccuracyBoost: 1.0
+  axionhmcode_boost.AxionHMcodeBoost:
+    python_path: ./axionhmcode_boost   # on Cocoa: ./external_modules/code/axiecamb/axionhmcode_boost
+    axionhmcode_path: ../axionHMcode   # on Cocoa: ./external_modules/code/axionHMcode
+    version: dome
+    strict: false
+    processes: 1
+    # To also sample the Dentler nuisance parameters, set sample_nuisance: true
+    # and add alpha_1/alpha_2/gamma_1/gamma_2 prior blocks to params
+    # (Gaughan et al. priors: [0.6,2.0], [1.43,2.54], [5.0,45.0], [-0.37,-0.23])
+
+sampler:
+  mcmc:
+    # Proposal covariance: null -> generated from params info (prior and proposal);
+    # to reuse a matrix, set covmat (file path) and covmat_params
+    covmat:
+    covmat_params:
+    # Proposal covariance learning
+    learn_proposal: true
+    learn_proposal_Rminus1_min: 0.035
+    learn_proposal_Rminus1_max: 100.
+    learn_proposal_Rminus1_max_early: 300.
+    # Convergence and stopping
+    max_samples: .inf
+    Rminus1_stop: 0.01
+    Rminus1_cl_stop: 0.11
+    Rminus1_cl_level: 0.95
+    # Exploiting speed hierarchy
+    measure_speeds: true
+    drag: false
+    oversample_power: 0.2
+    oversample_thin: true
+    # Avoid chain getting stuck forever
+    max_tries: 10000
+    burn_in: 0
+    # When no MPI used, number of fractions of the chain to compare
+    Rminus1_single_split: 4
+
+output: ./chains/EXAMPLE_AXIONHMCODE_MCMC1

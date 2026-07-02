@@ -1,0 +1,183 @@
+# AxiECAMB (modern-CAMB port) + pristine Cobaya: single-point EVALUATE example.
+#
+# Works with unmodified Cobaya (tested with 3.5.7) - no patching of the Cobaya CAMB
+# theory wrapper is needed: the axion parameters (m_ax, omaxh2, ...) are discovered
+# and set through this package's own camb.get_valid_numerical_params/camb.set_params.
+#
+# Setup:
+#   1. Build this repo:  cd fortran && make camb && make python PYCAMB_OUTPUT_DIR=../camb/
+#   2. Install likelihood data:  cobaya-install EXAMPLE_EVALUATE1.yaml -p /path/to/packages
+#      (act_dr6_lenslike additionally needs:  pip install act_dr6_lenslike)
+#   3. Run from the repo root:  cobaya-run EXAMPLE_EVALUATE1.yaml -p /path/to/packages
+#      (theory.camb.path below is './' = this repo; use an absolute path if running
+#       from elsewhere, e.g. on Cocoa: ./external_modules/code/New_AxiECAMB)
+#
+# Notes:
+#   * The chain samples 100*theta_star as 'thetastar100' and feeds theta_star to CAMB
+#     via the value-lambda below (CAMB's thetastar input is theta_star itself).
+#   * logA->As, omegaaxh2->omaxh2, logmx->m_ax are the standard Cobaya value-lambda
+#     mappings; omegabh2/omegach2 reach CAMB through the wrapper's Planck-name
+#     renames (use_renames: True).
+#   * theta_H0_range brackets the H0 solution over the whole prior box (also avoids
+#     slow/ill-conditioned brentq trials at very low H0).
+#   * halofit_version: original is the AxiECAMB-validated nonlinear treatment for
+#     axions; omegam derived = (omegabh2+omegach2+omeganuh2)/h^2 (excludes the axion,
+#     i.e. the DE-like convention).
+
+stop_at_error: true
+debug: false
+timing: true
+
+likelihood:
+  planck_2018_highl_plik.TTTEEE_lite:
+    path: ./external_modules/
+    clik_file: plc_3.0/hi_l/plik_lite/plik_lite_v22_TTTEEE.clik
+  planck_2018_lowl.TT:
+    path: ./external_modules
+  planck_2018_lowl.EE:
+    path: ./external_modules
+  sn.desy5:
+  bao.desi_dr2.desi_bao_all:
+  act_dr6_lenslike.ACTDR6LensLike:
+    lens_only: false
+    variant: actplanck_baseline
+
+params:
+  logA:
+    prior:
+      min: 2.8
+      max: 3.2
+    ref:
+      dist: norm
+      loc: 3.04
+      scale: 0.025
+    proposal: 0.025
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  As:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+  ns:
+    prior:
+      min: 0.93
+      max: 1.01
+    ref:
+      dist: norm
+      loc: 0.96
+      scale: 0.0075
+    proposal: 0.0075
+    latex: n_\mathrm{s}
+  thetastar100:
+    prior:
+      min: 1
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 1.041
+      scale: 0.001
+    proposal: 0.001
+    latex: 100\theta_\mathrm{*}
+    renames: theta
+    drop: true
+  thetastar:
+    value: 'lambda thetastar100: 1.e-2*thetastar100'
+    latex: \theta_\mathrm{*}
+  omegabh2:
+    prior:
+      min: 0.01
+      max: 0.03
+    ref:
+      dist: norm
+      loc: 0.022383
+      scale: 0.005
+    proposal: 0.005
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    prior:
+      min: 0.08
+      max: 0.16
+    ref:
+      dist: norm
+      loc: 0.12011
+      scale: 0.01
+    proposal: 0.01
+    latex: \Omega_\mathrm{c} h^2
+  tau:
+    prior:
+      min: 0.04
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.01
+    proposal: 0.01
+    latex: \tau_\mathrm{reio}
+  omegaaxh2:
+    prior:
+      min: 0.0001
+      max: 0.4
+    ref:
+      dist: norm
+      loc: 0.1
+      scale: 0.03
+    proposal: 0.03
+    latex: \Omega_\mathrm{ax} h^2
+    drop: true
+  omaxh2:
+    value: 'lambda omegaaxh2: omegaaxh2'
+    latex: \omega_\mathrm{ax}
+  logmx:
+    prior:
+      min: -34
+      max: -31.0
+    ref:
+      dist: norm
+      loc: -33
+      scale: 0.07
+    proposal: 0.07
+    latex: \log{m_{\rm ax}}
+    drop: true
+  m_ax:
+    value: 'lambda logmx: 10**logmx'
+    latex: m_\mathrm{ax}
+  mnu:
+    value: 0.06
+  H0:
+    derived: true
+    latex: H_0
+  omegam:
+    derived: true
+    latex: \Omega_\mathrm{m}
+  rdrag:
+    derived: true
+    latex: r_\mathrm{drag}
+
+theory:
+  camb:
+    path: ./external_modules/code/axiecamb
+    use_renames: true
+    extra_args:
+      num_massive_neutrinos: 1
+      nnu: 3.046
+      theta_H0_range: [40, 130]
+      halofit_version: original
+      lens_potential_accuracy: 4
+      lens_margin: 1250
+      AccuracyBoost: 1.0
+      lSampleBoost: 1.0
+      lAccuracyBoost: 1.0
+
+sampler:
+  evaluate:
+    N: 2
+    override:
+      logA: 3.044
+      ns: 0.9655
+      thetastar100: 1.0411
+      omegabh2: 0.022383
+      #omegach2: 0.12011
+      tau: 0.0543
+      #omegaaxh2: 0.1
+      logmx: -33.0
+
+output: ./chains/EXAMPLE_EVALUATE1

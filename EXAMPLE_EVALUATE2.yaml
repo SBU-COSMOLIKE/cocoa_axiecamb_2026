@@ -1,0 +1,205 @@
+# AxiECAMB + axionHMcode nonlinear boost + pristine Cobaya: single-point EVALUATE.
+#
+# The axionHMcode boost B(k,z) = P_NL/P_L is fed to CAMB through cobaya's
+# use_non_linear_ratio mechanism (cobaya >= 3.6.2) by the AxionHMcodeBoost
+# Theory class in ./axionhmcode_boost/ (see its README for options and the
+# validity domain). Lensed TT/TE/EE and C_L^phiphi are computed with the boost
+# applied consistently to the lensing potential.
+#
+# Setup:
+#   1. Build this repo:  cd fortran && make camb && make python PYCAMB_OUTPUT_DIR=../camb/
+#   2. Clone axionHMcode next to this repo (or adjust axionhmcode_path below):
+#      git clone https://github.com/SophieMLV/axionHMcode ../axionHMcode
+#      (needs numpy<2, scipy<1.14, numba, astropy)
+#   3. Install likelihood data:  cobaya-install EXAMPLE_AXIONHMCODE_EVALUATE1.yaml -p /path/to/packages
+#      (act_dr6_lenslike additionally needs:  pip install act_dr6_lenslike)
+#   4. Run from the repo root:  cobaya-run EXAMPLE_AXIONHMCODE_EVALUATE1.yaml -p /path/to/packages
+#      On Cocoa, use the external_modules paths given in the theory block comments.
+#
+# Axion mass, mode A (this file): the params block carries the sampled-log-mass
+# prior over the target window logmx in [-25, -23] (m_ax ~ 1e-25..1e-23 eV, the
+# range where the axion Jeans scale sits in the quasi-linear regime probed by
+# CMB lensing, arXiv:2605.12054); the evaluate sampler pins the mass in the
+# override below, so this block is copy-paste ready for a sampling run.
+#
+# DO NOT reuse the DE-like window of EXAMPLE_EVALUATE1 (logmx in [-34,-31])
+# here: the boost theory hard-errors for DE-like axions (m/H0 < 10) — use the
+# halofit_version: original path for those masses.
+#
+# Cost: one evaluation computes the boost at every node of CAMB's internal
+# nonlinear-lensing redshift grid (50 nodes at AccuracyBoost 1.0), at ~1.3 s
+# (basic) / ~2.7 s (dome) per node single-threaded. Set processes: N in the
+# boost block to divide the wall time (identical numerics).
+
+stop_at_error: true
+debug: false
+timing: true
+
+likelihood:
+  planck_2018_highl_plik.TTTEEE_lite:
+    path: ./external_modules/
+    clik_file: plc_3.0/hi_l/plik_lite/plik_lite_v22_TTTEEE.clik
+  planck_2018_lowl.TT:
+    path: ./external_modules
+  planck_2018_lowl.EE:
+    path: ./external_modules
+  sn.desy5:
+  bao.desi_dr2.desi_bao_all:
+  act_dr6_lenslike.ACTDR6LensLike:
+    lens_only: false
+    variant: actplanck_baseline
+
+params:
+  logA:
+    prior:
+      min: 2.8
+      max: 3.2
+    ref:
+      dist: norm
+      loc: 3.04
+      scale: 0.025
+    proposal: 0.025
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  As:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+  ns:
+    prior:
+      min: 0.93
+      max: 1.01
+    ref:
+      dist: norm
+      loc: 0.96
+      scale: 0.0075
+    proposal: 0.0075
+    latex: n_\mathrm{s}
+  thetastar100:
+    prior:
+      min: 1
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 1.041
+      scale: 0.001
+    proposal: 0.001
+    latex: 100\theta_\mathrm{*}
+    renames: theta
+    drop: true
+  thetastar:
+    value: 'lambda thetastar100: 1.e-2*thetastar100'
+    latex: \theta_\mathrm{*}
+  omegabh2:
+    prior:
+      min: 0.01
+      max: 0.03
+    ref:
+      dist: norm
+      loc: 0.022383
+      scale: 0.005
+    proposal: 0.005
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    prior:
+      min: 0.08
+      max: 0.16
+    ref:
+      dist: norm
+      loc: 0.12011
+      scale: 0.01
+    proposal: 0.01
+    latex: \Omega_\mathrm{c} h^2
+  tau:
+    prior:
+      min: 0.04
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.01
+    proposal: 0.01
+    latex: \tau_\mathrm{reio}
+  # DM-like axion density: prior cap keeps fax = omega_ax/omega_m inside the
+  # dome calibration bound (0.3); with strict: False larger values only warn
+  omegaaxh2:
+    prior:
+      min: 0.0001
+      max: 0.04
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.004
+    proposal: 0.004
+    latex: \Omega_\mathrm{ax} h^2
+    drop: true
+  omaxh2:
+    value: 'lambda omegaaxh2: omegaaxh2'
+    latex: \omega_\mathrm{ax}
+  # axion mass, mode A: sampled-log-mass block, pinned in the evaluate override
+  logmx:
+    prior:
+      min: -25.0
+      max: -23.0
+    ref:
+      dist: norm
+      loc: -24.0
+      scale: 0.1
+    proposal: 0.1
+    latex: \log{m_{\rm ax}}
+    drop: true
+  m_ax:
+    value: 'lambda logmx: 10**logmx'
+    latex: m_\mathrm{ax}
+  mnu:
+    value: 0.06
+  H0:
+    derived: true
+    latex: H_0
+  omegam:
+    derived: true
+    latex: \Omega_\mathrm{m}
+  rdrag:
+    derived: true
+    latex: r_\mathrm{drag}
+
+theory:
+  camb:
+    path: ./external_modules/code/axiecamb
+    # (cobaya >= 3.6 applies Planck-name renames unconditionally; the old
+    #  use_renames flag no longer exists upstream)
+    use_non_linear_ratio: true   # top-level camb option, NOT inside extra_args
+    extra_args:
+      num_massive_neutrinos: 1
+      nnu: 3.046
+      theta_H0_range: [40, 130]
+      # nonlinear + kmax make CAMB keep matter transfers on the lensing path
+      # (WantTransfer), which the boost theory reads; kmax in 1/Mpc
+      nonlinear: NonLinear_both
+      kmax: 10
+      # halofit_version is irrelevant here: use_non_linear_ratio forces the
+      # ExternalNonLinearRatio model, fed by the boost theory below
+      lens_potential_accuracy: 4
+      lens_margin: 1250
+      AccuracyBoost: 1.0
+      lSampleBoost: 1.0
+      lAccuracyBoost: 1.0
+  axionhmcode_boost.AxionHMcodeBoost:
+    python_path: ./external_modules/code/axiecamb/axionhmcode_boost
+    axionhmcode_path: ./external_modules/code/axionHMcode
+    version: dome                      # 'dome' (default) | 'basic'
+    strict: false                      # true: hard-error outside calibration
+    processes: 1
+
+sampler:
+  evaluate:
+    override:
+      logA: 3.044
+      ns: 0.9655
+      thetastar100: 1.0411
+      omegabh2: 0.022383
+      omegach2: 0.12011
+      tau: 0.0543
+      omegaaxh2: 0.012
+      logmx: -24.0
+
+output: ./chains/EXAMPLE_EVALUATE2
