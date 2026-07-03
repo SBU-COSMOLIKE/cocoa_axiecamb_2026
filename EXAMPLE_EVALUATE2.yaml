@@ -185,11 +185,11 @@ theory:
     axionhmcode_path: ./external_modules/code/axionHMcode
     version: dome      # 'dome' (default) | 'basic'
     strict: false      # true: hard-error outside calibration
-    processes: 1
+    legacy_root_finder: false 
 
 sampler:
   evaluate:
-    N: 1
+    N: 2
     override:
       logA: 3.044
       ns: 0.9655
@@ -199,5 +199,6 @@ sampler:
       tau: 0.0543
       omegaaxh2: 0.012
       logmx: -24.0
+      A_planck: 1.00191
 
 output: ./projects/axicambv2/chains/EXAMPLE_EVALUATE2

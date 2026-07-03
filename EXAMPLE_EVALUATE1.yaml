@@ -179,5 +179,6 @@ sampler:
       tau: 0.0543
       omegaaxh2: 0.1
       logmx: -33.0
+      A_planck: 1.00191
 
 output: ./projects/axicambv2/chains/EXAMPLE_EVALUATE1

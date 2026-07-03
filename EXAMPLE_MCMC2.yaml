@@ -176,7 +176,7 @@ theory:
     axionhmcode_path: ./external_modules/code/axionHMcode
     version: dome
     strict: false
-    processes: 1
+    legacy_root_finder: false 
     # To also sample the Dentler nuisance parameters, set sample_nuisance: true
     # and add alpha_1/alpha_2/gamma_1/gamma_2 prior blocks to params
     # (Gaughan et al. priors: [0.6,2.0], [1.43,2.54], [5.0,45.0], [-0.37,-0.23])
